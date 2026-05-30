@@ -1,30 +1,42 @@
+# ============================================================
+# docker-compose.yml — Orquestração dos serviços
+# Sobe o backend (API) e o frontend (Next.js) juntos,
+# conectados em uma rede interna
+# ============================================================
+
 version: "3.9"
 
 services:
+
+  # ---- Serviço 1: API Backend ----
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ./backend          # pasta com o código da API
+      dockerfile: Dockerfile      # arquivo de build do backend
     container_name: fesf-sus-backend
     ports:
-      - "8000:8000"
-    restart: unless-stopped
+      - "8000:8000"               # expõe a porta 8000 no computador host
+    restart: unless-stopped       # reinicia automaticamente se cair
     networks:
-      - fesf-network
+      - fesf-network              # conecta na rede interna
 
+  # ---- Serviço 2: Frontend Next.js ----
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend         # pasta com o código do frontend
       dockerfile: Dockerfile.frontend
     container_name: fesf-sus-frontend
     ports:
-      - "3000:3000"
+      - "3000:3000"               # expõe a porta 3000 no computador host
     depends_on:
-      - backend
+      - backend                   # garante que o backend sobe antes
     restart: unless-stopped
     networks:
       - fesf-network
 
+# ---- Rede interna ----
+# Permite que backend e frontend se comuniquem pelo nome do serviço
+# ex: o frontend pode acessar a API em http://backend:8000
 networks:
   fesf-network:
     driver: bridge
