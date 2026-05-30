@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fesf-sus-backend
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - fesf-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: fesf-sus-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - fesf-network
+
+networks:
+  fesf-network:
+    driver: bridge
