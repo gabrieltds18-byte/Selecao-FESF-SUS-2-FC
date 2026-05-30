@@ -1,16 +1,40 @@
+# ============================================================
+# Dockerfile.frontend — Frontend (Next.js)
+# Build em dois estágios para gerar imagem menor e otimizada
+# ============================================================
+
+# ---- ESTÁGIO 1: BUILD ----
+# Compila a aplicação Next.js
 FROM node:20-alpine AS builder
+
 WORKDIR /app
+
+# Copia e instala as dependências primeiro (cache do Docker)
 COPY package.json ./
 RUN npm install
+
+# Copia todo o código e faz o build de produção
 COPY . .
 RUN npm run build
 
+# ---- ESTÁGIO 2: RUNNER ----
+# Cria a imagem final apenas com o necessário para rodar
+# (sem as dependências de desenvolvimento — imagem menor)
 FROM node:20-alpine AS runner
+
 WORKDIR /app
+
+# Define o modo de produção
 ENV NODE_ENV=production
+
+# Copia apenas os arquivos gerados no build
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/public ./public
+
+# Expõe a porta 3000 do Next.js
 EXPOSE 3000
+
+# Inicia o servidor Next.js em modo produção
 CMD ["npm", "start"]
